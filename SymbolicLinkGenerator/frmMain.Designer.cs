@@ -60,9 +60,12 @@
             this.txtDstPath = new System.Windows.Forms.ToolStripTextBox();
             this.msMain = new System.Windows.Forms.MenuStrip();
             this.mnuFile = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuShowTarget = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuFileBar1 = new System.Windows.Forms.ToolStripSeparator();
             this.mnuFileExit = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuHelpAbout = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuShowLog = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.spcMain)).BeginInit();
             this.spcMain.Panel1.SuspendLayout();
             this.spcMain.Panel2.SuspendLayout();
@@ -376,8 +379,8 @@
             // lblDstPath
             // 
             this.lblDstPath.Name = "lblDstPath";
-            this.lblDstPath.Size = new System.Drawing.Size(31, 22);
-            this.lblDstPath.Text = "Link";
+            this.lblDstPath.Size = new System.Drawing.Size(57, 22);
+            this.lblDstPath.Text = "Location";
             // 
             // txtDstPath
             // 
@@ -400,15 +403,29 @@
             // mnuFile
             // 
             this.mnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuShowLog,
+            this.mnuShowTarget,
+            this.mnuFileBar1,
             this.mnuFileExit});
             this.mnuFile.Name = "mnuFile";
             this.mnuFile.Size = new System.Drawing.Size(39, 21);
             this.mnuFile.Text = "&File";
             // 
+            // mnuShowTarget
+            // 
+            this.mnuShowTarget.Name = "mnuShowTarget";
+            this.mnuShowTarget.Size = new System.Drawing.Size(180, 22);
+            this.mnuShowTarget.Text = "Show &Target";
+            // 
+            // mnuFileBar1
+            // 
+            this.mnuFileBar1.Name = "mnuFileBar1";
+            this.mnuFileBar1.Size = new System.Drawing.Size(177, 6);
+            // 
             // mnuFileExit
             // 
             this.mnuFileExit.Name = "mnuFileExit";
-            this.mnuFileExit.Size = new System.Drawing.Size(96, 22);
+            this.mnuFileExit.Size = new System.Drawing.Size(180, 22);
             this.mnuFileExit.Text = "&Exit";
             // 
             // mnuHelp
@@ -424,6 +441,12 @@
             this.mnuHelpAbout.Name = "mnuHelpAbout";
             this.mnuHelpAbout.Size = new System.Drawing.Size(111, 22);
             this.mnuHelpAbout.Text = "&About";
+            // 
+            // mnuShowLog
+            // 
+            this.mnuShowLog.Name = "mnuShowLog";
+            this.mnuShowLog.Size = new System.Drawing.Size(180, 22);
+            this.mnuShowLog.Text = "Show &Log";
             // 
             // frmMain
             // 
@@ -512,6 +535,9 @@
         private System.Windows.Forms.ToolStripMenuItem mnuFileExit;
         private System.Windows.Forms.ToolStripMenuItem mnuHelp;
         private System.Windows.Forms.ToolStripMenuItem mnuHelpAbout;
+        private System.Windows.Forms.ToolStripMenuItem mnuShowTarget;
+        private System.Windows.Forms.ToolStripSeparator mnuFileBar1;
+        private System.Windows.Forms.ToolStripMenuItem mnuShowLog;
     }
 }
 

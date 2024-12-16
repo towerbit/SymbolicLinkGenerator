@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.IO.Pipes;
 using System.Media;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SymbolicLinkGenerator
@@ -117,13 +120,14 @@ namespace SymbolicLinkGenerator
         /// <param name="lvw"></param>
         public static void ReloadListView(TreeNode node, ListView lvw)
         {
-            // 清除ListView中的现有项
-            lvw.Items.Clear();
+           
             if (lvw.SmallImageList == null)
                 lvw.SmallImageList = _imageList;
 
             lvw.Cursor = Cursors.WaitCursor;
             lvw.BeginUpdate();
+            // 清除ListView中的现有项
+            lvw.Items.Clear();
             try
             {
                 var path = node.Tag.ToString();
@@ -525,6 +529,7 @@ namespace SymbolicLinkGenerator
         /// <param name="link">创建软链接的保存位置</param>
         /// <param name="target">软链接的连接目标来源</param>
         /// <returns></returns>
+        [Obsolete("由于管理员权限问题停用，改用 TryMakeLinkByCore()")]
         public static bool TryMakeLink(string link, string target)
         {
             var startInfo = new ProcessStartInfo()
@@ -560,6 +565,108 @@ namespace SymbolicLinkGenerator
             }
             
             return ret;
+        }
+
+        private static void extractEmbeddedResource(string resourceName, string outputPath)
+        {
+            // 获取当前程序集
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            // 使用流获取嵌入的资源
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                {
+                    Debug.Print($"找不到嵌入的资源: {resourceName}");
+                    return;
+                }
+
+                // 创建输出文件流
+                using (FileStream fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                {
+                    // 将嵌入的资源写入到文件
+                    stream.CopyTo(fileStream);
+                }
+            }
+
+            Console.WriteLine($"资源已提取到: {outputPath}");
+        }
+
+        public static bool TryMakeLinkByCore(string link, string target, bool showLog)
+        {
+            bool ret = false;
+            // 检查 SlgCore.exe 文件是否存在
+            //var outputFile = Path.Combine(Path.GetTempPath(), "SlgCore.exe");
+            var outputFile = Path.Combine(Application.StartupPath, "SlgCore.exe");
+            if (!File.Exists("SlgCore.exe"))
+            {
+                // 从嵌入的资源中释放文件：名字空间.文件名.扩展名
+                var resourceName = "SymbolicLinkGenerator.SlgCore.exe";
+                extractEmbeddedResource(resourceName, outputFile);
+            }
+
+            // 检查 SlgCore 进程是否已存在, 没有则需要启动它
+            if (Process.GetProcessesByName("SlgCore").Length == 0)
+            {
+                var p = new Process();
+                p.StartInfo.FileName = outputFile;
+                p.StartInfo.Verb = "runas"; 
+
+                if (showLog)
+                { 
+                    p.StartInfo.CreateNoWindow = false;
+                    p.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+                }
+                else
+                {
+                    p.StartInfo.CreateNoWindow = true;
+                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                }
+
+                p.StartInfo.UseShellExecute = true;
+                p.Start();
+            }
+
+            //if (pipe != null)
+            NamedPipeClientStream pipe = null;
+            while (true)
+            {
+                if (null == pipe)
+                {
+                    try
+                    {
+                        pipe = new NamedPipeClientStream(".", "Global\\SlgFilePipe", PipeDirection.Out);
+                        pipe.Connect(1000); // 连接到管道
+
+                        using (var writer = new StreamWriter(pipe))
+                            writer.WriteLine($"{link},{target}");
+                        pipe.Dispose();
+                        ret = true;
+                        break;
+                    }
+                    catch (TimeoutException)
+                    {
+                        Debug.Print("无法连接到 SlgCore");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print(ex.Message);
+                    }
+                }
+                Application.DoEvents();
+                Thread.Sleep(100);
+            }
+            return ret;
+        }
+
+        public static void KillProcessCore()
+        {
+            foreach(var p in Process.GetProcessesByName("SlgCore"))
+                p.Kill();
+            var exePath = Path.Combine(Path.GetTempPath(), "SlgCore.exe");
+            //if(File.Exists(exePath))
+            //    File.Delete(exePath); 
         }
 
         #region 删除文件到回收站

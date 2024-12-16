@@ -22,5 +22,29 @@ namespace SymbolicLinkGenerator.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowTarget {
+            get {
+                return ((bool)(this["ShowTarget"]));
+            }
+            set {
+                this["ShowTarget"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowLog {
+            get {
+                return ((bool)(this["ShowLog"]));
+            }
+            set {
+                this["ShowLog"] = value;
+            }
+        }
     }
 }

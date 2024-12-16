@@ -7,11 +7,12 @@
     <ProjectGuid>{3E818568-37DC-400A-8B99-B9D272F6684C}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>SymbolicLinkGenerator</RootNamespace>
-    <AssemblyName>SymbolicLinkGenerator</AssemblyName>
+    <AssemblyName>SlgUI</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -96,6 +97,8 @@
     <Content Include="Resources\imageres_5357.ico" />
     <Content Include="Resources\imageres_1301.ico" />
     <Content Include="Resources\imageres_5359.ico" />
+    <Content Include="SlgCore.pdb" />
+    <EmbeddedResource Include="SlgCore.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
