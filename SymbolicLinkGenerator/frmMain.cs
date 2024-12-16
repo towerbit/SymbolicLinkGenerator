@@ -89,6 +89,12 @@ namespace SymbolicLinkGenerator
             lvwDst.DragOver += lvwDestDragOverEventHandler;
             lvwDst.DragDrop += lvwDestDragDropEventHandler;
             lvwDst.KeyDown += lvwDestKeyDownEventHandler;
+            lvwDst.ItemSelectionChanged += (s, e) => 
+            {
+                var lvw = (ListView)s;
+                var item = e.Item;
+                lblDstTargetPath.Text = item.ToolTipText;
+            };
             lvwDst.SelectedIndexChanged += lvwSelectedIndexChangedEventHandler;
             lvwDst.GotFocus += (s, e) => _activeListView = lvwDst;
             lvwDst.LostFocus +=(s, e) => { if (_activeListView == lvwDst) _activeListView = null; };
@@ -156,6 +162,7 @@ namespace SymbolicLinkGenerator
 
             var lblSel = lvw.Name.Contains("Src") ? lblSrcSelCount : lblDstSelCount;
             lblSel.Text = "";
+            lblDstTargetPath.Text = "";
         }
 
         private void lvwDestKeyDownEventHandler(object sender, KeyEventArgs e)

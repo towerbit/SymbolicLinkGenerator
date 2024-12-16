@@ -48,6 +48,7 @@
             this.ssDst = new System.Windows.Forms.StatusStrip();
             this.lblDstCount = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblDstSelCount = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lblDstTargetPath = new System.Windows.Forms.ToolStripStatusLabel();
             this.spcDst = new System.Windows.Forms.SplitContainer();
             this.tvwDst = new System.Windows.Forms.TreeView();
             this.lvwDst = new System.Windows.Forms.ListView();
@@ -93,7 +94,8 @@
             // spcMain
             // 
             this.spcMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spcMain.Location = new System.Drawing.Point(0, 25);
+            this.spcMain.Location = new System.Drawing.Point(0, 34);
+            this.spcMain.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.spcMain.Name = "spcMain";
             // 
             // spcMain.Panel1
@@ -103,8 +105,9 @@
             // spcMain.Panel2
             // 
             this.spcMain.Panel2.Controls.Add(this.tscDst);
-            this.spcMain.Size = new System.Drawing.Size(1264, 736);
-            this.spcMain.SplitterDistance = 592;
+            this.spcMain.Size = new System.Drawing.Size(1896, 1108);
+            this.spcMain.SplitterDistance = 888;
+            this.spcMain.SplitterWidth = 6;
             this.spcMain.TabIndex = 0;
             // 
             // tscSrc
@@ -117,10 +120,12 @@
             // tscSrc.ContentPanel
             // 
             this.tscSrc.ContentPanel.Controls.Add(this.spcSrc);
-            this.tscSrc.ContentPanel.Size = new System.Drawing.Size(521, 560);
-            this.tscSrc.Location = new System.Drawing.Point(29, 55);
+            this.tscSrc.ContentPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tscSrc.ContentPanel.Size = new System.Drawing.Size(782, 846);
+            this.tscSrc.Location = new System.Drawing.Point(44, 82);
+            this.tscSrc.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tscSrc.Name = "tscSrc";
-            this.tscSrc.Size = new System.Drawing.Size(521, 607);
+            this.tscSrc.Size = new System.Drawing.Size(782, 910);
             this.tscSrc.TabIndex = 0;
             this.tscSrc.Text = "tscSrc";
             // 
@@ -131,31 +136,33 @@
             // ssSrc
             // 
             this.ssSrc.Dock = System.Windows.Forms.DockStyle.None;
+            this.ssSrc.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.ssSrc.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblSrcCount,
             this.lblSrcSelCount});
             this.ssSrc.Location = new System.Drawing.Point(0, 0);
             this.ssSrc.Name = "ssSrc";
-            this.ssSrc.Size = new System.Drawing.Size(521, 22);
+            this.ssSrc.Size = new System.Drawing.Size(782, 31);
             this.ssSrc.SizingGrip = false;
             this.ssSrc.TabIndex = 0;
             // 
             // lblSrcCount
             // 
             this.lblSrcCount.Name = "lblSrcCount";
-            this.lblSrcCount.Size = new System.Drawing.Size(51, 17);
+            this.lblSrcCount.Size = new System.Drawing.Size(73, 24);
             this.lblSrcCount.Text = "0 Items";
             // 
             // lblSrcSelCount
             // 
             this.lblSrcSelCount.Name = "lblSrcSelCount";
-            this.lblSrcSelCount.Size = new System.Drawing.Size(104, 17);
+            this.lblSrcSelCount.Size = new System.Drawing.Size(151, 24);
             this.lblSrcSelCount.Text = "Selected 0 Items";
             // 
             // spcSrc
             // 
             this.spcSrc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.spcSrc.Location = new System.Drawing.Point(0, 0);
+            this.spcSrc.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.spcSrc.Name = "spcSrc";
             // 
             // spcSrc.Panel1
@@ -165,16 +172,18 @@
             // spcSrc.Panel2
             // 
             this.spcSrc.Panel2.Controls.Add(this.lvwSrc);
-            this.spcSrc.Size = new System.Drawing.Size(521, 560);
-            this.spcSrc.SplitterDistance = 242;
+            this.spcSrc.Size = new System.Drawing.Size(782, 846);
+            this.spcSrc.SplitterDistance = 363;
+            this.spcSrc.SplitterWidth = 6;
             this.spcSrc.TabIndex = 0;
             // 
             // tvwSrc
             // 
             this.tvwSrc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tvwSrc.Location = new System.Drawing.Point(0, 0);
+            this.tvwSrc.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tvwSrc.Name = "tvwSrc";
-            this.tvwSrc.Size = new System.Drawing.Size(242, 560);
+            this.tvwSrc.Size = new System.Drawing.Size(363, 846);
             this.tvwSrc.TabIndex = 0;
             // 
             // lvwSrc
@@ -187,9 +196,10 @@
             this.lvwSrc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvwSrc.HideSelection = false;
             this.lvwSrc.Location = new System.Drawing.Point(0, 0);
+            this.lvwSrc.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.lvwSrc.Name = "lvwSrc";
             this.lvwSrc.ShowItemToolTips = true;
-            this.lvwSrc.Size = new System.Drawing.Size(275, 560);
+            this.lvwSrc.Size = new System.Drawing.Size(413, 846);
             this.lvwSrc.TabIndex = 0;
             this.lvwSrc.UseCompatibleStateImageBehavior = false;
             this.lvwSrc.View = System.Windows.Forms.View.Details;
@@ -212,13 +222,14 @@
             // 
             this.tsSrc.Dock = System.Windows.Forms.DockStyle.None;
             this.tsSrc.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tsSrc.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.tsSrc.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnSrc,
             this.lblSrcPath,
             this.txtSrcPath});
             this.tsSrc.Location = new System.Drawing.Point(0, 0);
             this.tsSrc.Name = "tsSrc";
-            this.tsSrc.Size = new System.Drawing.Size(521, 25);
+            this.tsSrc.Size = new System.Drawing.Size(782, 33);
             this.tsSrc.Stretch = true;
             this.tsSrc.TabIndex = 0;
             // 
@@ -231,13 +242,13 @@
             this.btnSrc.Image = ((System.Drawing.Image)(resources.GetObject("btnSrc.Image")));
             this.btnSrc.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSrc.Name = "btnSrc";
-            this.btnSrc.Size = new System.Drawing.Size(23, 22);
+            this.btnSrc.Size = new System.Drawing.Size(34, 28);
             this.btnSrc.Text = "Treeview";
             // 
             // lblSrcPath
             // 
             this.lblSrcPath.Name = "lblSrcPath";
-            this.lblSrcPath.Size = new System.Drawing.Size(46, 22);
+            this.lblSrcPath.Size = new System.Drawing.Size(66, 28);
             this.lblSrcPath.Text = "Target";
             // 
             // txtSrcPath
@@ -257,10 +268,12 @@
             // tscDst.ContentPanel
             // 
             this.tscDst.ContentPanel.Controls.Add(this.spcDst);
-            this.tscDst.ContentPanel.Size = new System.Drawing.Size(521, 560);
-            this.tscDst.Location = new System.Drawing.Point(70, 55);
+            this.tscDst.ContentPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tscDst.ContentPanel.Size = new System.Drawing.Size(782, 846);
+            this.tscDst.Location = new System.Drawing.Point(105, 82);
+            this.tscDst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tscDst.Name = "tscDst";
-            this.tscDst.Size = new System.Drawing.Size(521, 607);
+            this.tscDst.Size = new System.Drawing.Size(782, 910);
             this.tscDst.TabIndex = 1;
             this.tscDst.Text = "tscDst";
             // 
@@ -271,31 +284,40 @@
             // ssDst
             // 
             this.ssDst.Dock = System.Windows.Forms.DockStyle.None;
+            this.ssDst.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.ssDst.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblDstCount,
-            this.lblDstSelCount});
+            this.lblDstSelCount,
+            this.lblDstTargetPath});
             this.ssDst.Location = new System.Drawing.Point(0, 0);
             this.ssDst.Name = "ssDst";
-            this.ssDst.Size = new System.Drawing.Size(521, 22);
+            this.ssDst.Size = new System.Drawing.Size(782, 31);
             this.ssDst.SizingGrip = false;
             this.ssDst.TabIndex = 0;
             // 
             // lblDstCount
             // 
             this.lblDstCount.Name = "lblDstCount";
-            this.lblDstCount.Size = new System.Drawing.Size(51, 17);
+            this.lblDstCount.Size = new System.Drawing.Size(73, 24);
             this.lblDstCount.Text = "0 Items";
             // 
             // lblDstSelCount
             // 
             this.lblDstSelCount.Name = "lblDstSelCount";
-            this.lblDstSelCount.Size = new System.Drawing.Size(104, 17);
+            this.lblDstSelCount.Size = new System.Drawing.Size(151, 24);
             this.lblDstSelCount.Text = "Selected 0 Items";
+            // 
+            // lblDstTargetPath
+            // 
+            this.lblDstTargetPath.Name = "lblDstTargetPath";
+            this.lblDstTargetPath.Size = new System.Drawing.Size(102, 24);
+            this.lblDstTargetPath.Text = "targetPath";
             // 
             // spcDst
             // 
             this.spcDst.Dock = System.Windows.Forms.DockStyle.Fill;
             this.spcDst.Location = new System.Drawing.Point(0, 0);
+            this.spcDst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.spcDst.Name = "spcDst";
             // 
             // spcDst.Panel1
@@ -305,16 +327,18 @@
             // spcDst.Panel2
             // 
             this.spcDst.Panel2.Controls.Add(this.lvwDst);
-            this.spcDst.Size = new System.Drawing.Size(521, 560);
-            this.spcDst.SplitterDistance = 243;
+            this.spcDst.Size = new System.Drawing.Size(782, 846);
+            this.spcDst.SplitterDistance = 364;
+            this.spcDst.SplitterWidth = 6;
             this.spcDst.TabIndex = 0;
             // 
             // tvwDst
             // 
             this.tvwDst.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tvwDst.Location = new System.Drawing.Point(0, 0);
+            this.tvwDst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tvwDst.Name = "tvwDst";
-            this.tvwDst.Size = new System.Drawing.Size(243, 560);
+            this.tvwDst.Size = new System.Drawing.Size(364, 846);
             this.tvwDst.TabIndex = 0;
             // 
             // lvwDst
@@ -326,9 +350,10 @@
             this.lvwDst.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvwDst.HideSelection = false;
             this.lvwDst.Location = new System.Drawing.Point(0, 0);
+            this.lvwDst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.lvwDst.Name = "lvwDst";
             this.lvwDst.ShowItemToolTips = true;
-            this.lvwDst.Size = new System.Drawing.Size(274, 560);
+            this.lvwDst.Size = new System.Drawing.Size(412, 846);
             this.lvwDst.TabIndex = 0;
             this.lvwDst.UseCompatibleStateImageBehavior = false;
             this.lvwDst.View = System.Windows.Forms.View.Details;
@@ -351,13 +376,14 @@
             // 
             this.tsDst.Dock = System.Windows.Forms.DockStyle.None;
             this.tsDst.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tsDst.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.tsDst.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnDst,
             this.lblDstPath,
             this.txtDstPath});
             this.tsDst.Location = new System.Drawing.Point(0, 0);
             this.tsDst.Name = "tsDst";
-            this.tsDst.Size = new System.Drawing.Size(521, 25);
+            this.tsDst.Size = new System.Drawing.Size(782, 33);
             this.tsDst.Stretch = true;
             this.tsDst.TabIndex = 0;
             // 
@@ -370,13 +396,13 @@
             this.btnDst.Image = ((System.Drawing.Image)(resources.GetObject("btnDst.Image")));
             this.btnDst.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnDst.Name = "btnDst";
-            this.btnDst.Size = new System.Drawing.Size(23, 22);
+            this.btnDst.Size = new System.Drawing.Size(34, 28);
             this.btnDst.Text = "Treeview";
             // 
             // lblDstPath
             // 
             this.lblDstPath.Name = "lblDstPath";
-            this.lblDstPath.Size = new System.Drawing.Size(31, 22);
+            this.lblDstPath.Size = new System.Drawing.Size(45, 28);
             this.lblDstPath.Text = "Link";
             // 
             // txtDstPath
@@ -388,12 +414,14 @@
             // 
             // msMain
             // 
+            this.msMain.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
+            this.msMain.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuFile,
             this.mnuHelp});
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
-            this.msMain.Size = new System.Drawing.Size(1264, 25);
+            this.msMain.Size = new System.Drawing.Size(1896, 34);
             this.msMain.TabIndex = 1;
             this.msMain.Text = "menuStrip1";
             // 
@@ -402,13 +430,13 @@
             this.mnuFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuFileExit});
             this.mnuFile.Name = "mnuFile";
-            this.mnuFile.Size = new System.Drawing.Size(39, 21);
+            this.mnuFile.Size = new System.Drawing.Size(56, 28);
             this.mnuFile.Text = "&File";
             // 
             // mnuFileExit
             // 
             this.mnuFileExit.Name = "mnuFileExit";
-            this.mnuFileExit.Size = new System.Drawing.Size(96, 22);
+            this.mnuFileExit.Size = new System.Drawing.Size(141, 34);
             this.mnuFileExit.Text = "&Exit";
             // 
             // mnuHelp
@@ -416,25 +444,27 @@
             this.mnuHelp.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuHelpAbout});
             this.mnuHelp.Name = "mnuHelp";
-            this.mnuHelp.Size = new System.Drawing.Size(47, 21);
+            this.mnuHelp.Size = new System.Drawing.Size(67, 28);
             this.mnuHelp.Text = "&Help";
             // 
             // mnuHelpAbout
             // 
             this.mnuHelpAbout.Name = "mnuHelpAbout";
-            this.mnuHelpAbout.Size = new System.Drawing.Size(111, 22);
+            this.mnuHelpAbout.Size = new System.Drawing.Size(164, 34);
             this.mnuHelpAbout.Text = "&About";
             // 
             // frmMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1264, 761);
+            this.ClientSize = new System.Drawing.Size(1896, 1142);
             this.Controls.Add(this.spcMain);
             this.Controls.Add(this.msMain);
             this.MainMenuStrip = this.msMain;
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "frmMain";
             this.Text = "Symbolic Link Generator";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.spcMain.Panel1.ResumeLayout(false);
             this.spcMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.spcMain)).EndInit();
@@ -512,6 +542,7 @@
         private System.Windows.Forms.ToolStripMenuItem mnuFileExit;
         private System.Windows.Forms.ToolStripMenuItem mnuHelp;
         private System.Windows.Forms.ToolStripMenuItem mnuHelpAbout;
+        private System.Windows.Forms.ToolStripStatusLabel lblDstTargetPath;
     }
 }
 
