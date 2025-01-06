@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Text;
 using System.Windows.Forms;
 
 namespace SymbolicLinkGenerator
@@ -28,7 +29,7 @@ namespace SymbolicLinkGenerator
             spcMain.Panel2MinSize = spcMain.Width / 3;
             spcMain.SplitterMoved += (s, e) =>
             {
-                Debug.Print("【spcMain.SplitterMoved】");
+                //Debug.Print("【spcMain.SplitterMoved】");
                 spcMain.SuspendLayout();
                 txtSrcPath.Width = spcMain.Panel1.Width - btnSrc.Width - lblSrcPath.Width - SPRING_BORDER;
                 ExplorerHelper.ResizeListViewColumns(lvwSrc);
@@ -38,7 +39,7 @@ namespace SymbolicLinkGenerator
             };
             spcMain.Resize += (s, e) =>
             {
-                Debug.Print("【spcMain.Resize】");
+                //Debug.Print("【spcMain.Resize】");
                 spcMain.SuspendLayout();
                 ExplorerHelper.ResizeListViewColumns(lvwSrc);
                 ExplorerHelper.ResizeListViewColumns(lvwDst);
@@ -79,6 +80,7 @@ namespace SymbolicLinkGenerator
             lvwSrc.DoubleClick += lvwDoubleClickEventHandler;
             lvwSrc.ItemDrag += lvwSrcItemDragEventHandler;
             lvwSrc.SelectedIndexChanged += lvwSelectedIndexChangedEventHandler;
+            lvwSrc.KeyDown += lvwSrcKeyDownEventHandler;
             lvwSrc.GotFocus += (s, e) => _activeListView = lvwSrc;
             lvwSrc.LostFocus += (s, e) => { if (_activeListView == lvwSrc) _activeListView = null; };
 
@@ -180,10 +182,19 @@ namespace SymbolicLinkGenerator
             //lblDstPath.Text = "";
         }
 
+        private void lvwSrcKeyDownEventHandler(object sender, KeyEventArgs e)
+        {
+            var lvw = (ListView)sender;
+            if (e.Control && e.KeyCode == Keys.C)
+            {
+                copySelectedItems(lvw);
+            }
+        }
+
         private void lvwDestKeyDownEventHandler(object sender, KeyEventArgs e)
         {
             var lvw = (ListView)sender;
-           
+
             if (e.KeyCode == Keys.Delete
                 && lvwDst.SelectedItems.Count > 0)
             {
@@ -212,13 +223,99 @@ namespace SymbolicLinkGenerator
                         else
                         {
                             SystemSounds.Beep.Play();
-                            Debug.Print("SymbolicLink delete only.");
+                            Debug.Print("仅支持软连接删除");
                         }
                     }
                     if (null != pNode)
                         ExplorerHelper.AddSubForlders(pNode, true);
                 }
             }
+            else if (e.Control)
+            {
+                if (e.KeyCode == Keys.C)
+                {
+                    // 复制
+                    copySelectedItems(lvw);
+                }
+                else if (e.KeyCode == Keys.V)
+                {
+                    // 粘贴
+                    if (tvwDst.SelectedNode != null && tvwDst.SelectedNode.Parent != null)
+                    {
+                        var currPath = tvwDst.SelectedNode.Tag as string;
+                        if (!string.IsNullOrEmpty(currPath))
+                        {
+                            bool needReload = pasteFromClipboard(lvwDst, currPath, mnuShowLog.Checked);
+                            // 刷新界面
+                            if (needReload)
+                            {
+                                loadTreeNodes(tvwDst.SelectedNode, true);
+                                new frmToast(this, "创建成功", 3000);
+                            }
+                        }
+                    }
+                    else
+                        Debug.Print("当前位置无法粘贴创建软连接");
+                }
+            }
+        }
+
+        private static void copySelectedItems(ListView lvw)
+        {
+            // 检查是否有选中的项
+            if (lvw.SelectedItems.Count > 0)
+            {
+                var sb = new StringBuilder();
+                foreach(ListViewItem item in lvw.SelectedItems) 
+                    sb.AppendLine(item.Tag.ToString());
+                Clipboard.SetText(sb.ToString());
+                Debug.Print($"已复制到剪切板: {lvw.SelectedItems.Count}项");
+            }
+        }
+
+        private static bool pasteFromClipboard(ListView lvw, string path, bool showLog)
+        {
+            // 获取剪切板数据对象
+            IDataObject dataObject = Clipboard.GetDataObject();
+            bool ret = false;
+            if (dataObject.GetDataPresent(DataFormats.Text))
+            {
+                var clipboardText = (string)dataObject.GetData(DataFormats.Text);
+                var paths = clipboardText.Split(new[] { "\r\n", "\n" },
+                                                StringSplitOptions.RemoveEmptyEntries);
+                foreach (var fileOrFolder in paths)
+                {
+                    if (Directory.Exists(fileOrFolder) || File.Exists(fileOrFolder))
+                    {
+                        var link = Path.Combine(path, Path.GetFileName(fileOrFolder));
+                        ExplorerHelper.TryMakeLinkByCore(link, fileOrFolder, showLog);
+                        ret = true; 
+                    }
+                    else
+                        Debug.Print($"路径或文件不存在: {fileOrFolder}");
+                }
+            }
+            else if (dataObject.GetDataPresent(DataFormats.FileDrop))
+            {
+                // 获取剪切板中的文件路径
+                string[] paths = (string[])dataObject.GetData(DataFormats.FileDrop);
+
+                
+                // 将每个文件路径添加为 ListViewItem
+                foreach (string fileOrFolder in paths)
+                {
+                    // 检查路径是否存在
+                    if (Directory.Exists(fileOrFolder) || File.Exists(fileOrFolder))
+                    {
+                        var link = Path.Combine(path, Path.GetFileName(fileOrFolder));
+                        ExplorerHelper.TryMakeLinkByCore(link, fileOrFolder, showLog);
+                        ret = true;
+                    }
+                    else
+                        Debug.Print($"路径或文件不存在: {fileOrFolder}");
+                }
+            }
+            return ret;
         }
 
         private void lvwDoubleClickEventHandler(object sender, EventArgs e)
@@ -307,15 +404,16 @@ namespace SymbolicLinkGenerator
             if(null == tvw.SelectedNode
                || null == tvw.SelectedNode.Parent)
             {
-                Debug.Print("Can't drop file or folder here");
+                Debug.Print("无法在当前位置拖放创建软连接");
                 return;
             }
 
+            bool needReload = false;
             if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
             {
                 // 拖入的是内部的 ListViewItem，支持多选拖放
                 var draggedItems = (ListView.SelectedListViewItemCollection)e.Data.GetData(typeof(ListView.SelectedListViewItemCollection));
-                bool needReload = false;
+                
                 foreach (ListViewItem draggedItem in draggedItems)
                 {
                     //var link = Path.Combine(txtDstPath.Text, Path.GetFileName(draggedItem.Tag.ToString()));
@@ -326,13 +424,7 @@ namespace SymbolicLinkGenerator
                     if (ExplorerHelper.TryMakeLinkByCore(link, target, mnuShowLog.Checked))
                         needReload = true;
                 }
-                if (needReload)
-                {
-                    ExplorerHelper.AddSubForlders(tvw.SelectedNode, true);
-                    ExplorerHelper.ReloadListView(tvw.SelectedNode, lvw);
-                    lblDstCount.Text = $"Total {lvw.Items.Count - 1} items";
-                    lblDstSelCount.Text = "";
-                }
+                
             }
             else if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -340,7 +432,6 @@ namespace SymbolicLinkGenerator
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
                 if (files.Length > 0)
                 {
-                    bool needReload = false;
                     // 在这里可以处理拖放的文件
                     foreach (string file in files)
                     {
@@ -351,14 +442,17 @@ namespace SymbolicLinkGenerator
                         if (ExplorerHelper.TryMakeLinkByCore(link, target, mnuShowLog.Checked))
                             needReload = true;
                     }
-                    if (needReload)
-                    {
-                        ExplorerHelper.AddSubForlders(tvw.SelectedNode, true);
-                        ExplorerHelper.ReloadListView(tvw.SelectedNode, lvw);
-                        lblDstCount.Text = $"Total {lvw.Items.Count - 1} items";
-                        lblDstSelCount.Text = "";
-                    }
                 }
+            }
+
+            if (needReload)
+            {
+                //ExplorerHelper.AddSubForlders(tvw.SelectedNode, true);
+                //ExplorerHelper.ReloadListView(tvw.SelectedNode, lvw);
+                //lblDstCount.Text = $"Total {lvw.Items.Count - 1} items";
+                //lblDstSelCount.Text = "";
+                loadTreeNodes(tvw.SelectedNode, true);
+                new frmToast(this, "创建成功", 3000);
             }
         }
 
