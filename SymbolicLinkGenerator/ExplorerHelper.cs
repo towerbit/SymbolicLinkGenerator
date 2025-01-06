@@ -40,7 +40,7 @@ namespace SymbolicLinkGenerator
         }
 
         /// <summary>
-        /// 
+        /// 判断路径是否为符号链接
         /// </summary>
         /// <param name="path"></param>
         /// <param name="targetPath"></param>
@@ -74,8 +74,13 @@ namespace SymbolicLinkGenerator
             int targetLength = targetPath.Capacity;
 
             // 调用 GetFinalPathNameByHandle
-            IntPtr handle = CreateFile(linkPath, FileAccess.Read, FileShare.Read, IntPtr.Zero,
-                FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+            //IntPtr handle = CreateFile(linkPath, FileAccess.Read, FileShare.Read, IntPtr.Zero,
+            //    FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+
+            const uint FILE_SHARE_READ = 1;
+            const uint OPEN_EXISTING = 3;
+            const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+            IntPtr handle = CreateFile(linkPath, 0, FILE_SHARE_READ, IntPtr.Zero, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, IntPtr.Zero);
 
             if (handle == IntPtr.Zero)
             {
@@ -105,6 +110,15 @@ namespace SymbolicLinkGenerator
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern IntPtr CreateFile(string lpFileName, FileAccess dwDesiredAccess, FileShare dwShareMode, IntPtr lpSecurityAttributes,
             FileMode dwCreationDisposition, FileAttributes dwFlagsAndAttributes, IntPtr hTemplateFile);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr CreateFile(string lpFileName,
+                                                uint dwDesiredAccess,
+                                                uint dwShareMode,
+                                                IntPtr lpSecurityAttributes,
+                                                uint dwCreationDisposition,
+                                                uint dwFlagsAndAttributes,
+                                                IntPtr hTemplateFile);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern bool CloseHandle(IntPtr hObject);
@@ -148,10 +162,11 @@ namespace SymbolicLinkGenerator
                         item.Name = subNode.Name;
                         item.SubItems.Add("");
                         var directory = subNode.Tag.ToString();
-                        if (IsSymbolicLink(directory, out string oriPath))
+                        if (IsSymbolicLink(directory, out string targetPath))
                         {
-                            item.ForeColor = Color.Blue; 
-                            item.ToolTipText = oriPath;
+                            // 蓝色标记为符号链接，红色标记为失效的符号链接
+                            item.ForeColor = Directory.Exists(targetPath) ? Color.Blue : Color.Red; 
+                            item.ToolTipText = targetPath;
                         }
                         var dirInfo = new DirectoryInfo(directory);
                         item.SubItems.Add(dirInfo.LastWriteTime.ToString("G"));
@@ -181,7 +196,9 @@ namespace SymbolicLinkGenerator
                         item.Name = $"File{Guid.NewGuid().ToString("N")}";
                         if (bSoftlink)
                         {
-                            item.ForeColor = Color.Blue;
+                            var targetPath = GetTargetPath(file);
+                            item.ForeColor = File.Exists(targetPath) ? Color.Blue : Color.Red;
+                            item.ToolTipText = targetPath;
                         }
                         item.SubItems.Add(ConvertBytesToFileSize(fileInfo.Length)); // 添加文件大小列
                         item.SubItems.Add(fileInfo.LastWriteTime.ToString("G"));
@@ -382,8 +399,12 @@ namespace SymbolicLinkGenerator
                             TreeNode node = new TreeNode(Path.GetFileName(directory), IDX_FOLDER, IDX_FOLDER);
                             node.Name = $"Folder{Guid.NewGuid().ToString("N")}";
                             node.Tag = directory; // 可以将完整路径存储在Tag属性中，以便后续使用
-                            if (IsSymbolicLink(directory, out _))
-                                node.ForeColor = Color.Blue;
+                            if (IsSymbolicLink(directory, out var targetPath))
+                            {
+                                // 标记符号链接为蓝色字体，目标不存在的标记为红色字体
+                                node.ForeColor = Directory.Exists(targetPath) ? Color.Blue : Color.Red;
+                                node.ToolTipText = targetPath;
+                            }
                             // 将节点添加到父节点中
                             parentNode.Nodes.Add(node);
                         }
