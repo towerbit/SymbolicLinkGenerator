@@ -177,7 +177,7 @@ namespace SymbolicLinkGenerator
 
             var lblSel = lvw.Name.Contains("Src") ? lblSrcSelCount : lblDstSelCount;
             lblSel.Text = "";
-            lblDstPath.Text = "";
+            //lblDstPath.Text = "";
         }
 
         private void lvwDestKeyDownEventHandler(object sender, KeyEventArgs e)
