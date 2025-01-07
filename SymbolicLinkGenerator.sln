@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicLinkGenerator", "Sy
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicLinkGeneratorCore", "SymbolicLinkGeneratorCore\SymbolicLinkGeneratorCore.csproj", "{69CF894B-95FE-4AAA-9AE9-DB9D69DBFB72}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SymbolicLinkGenerator.Shared", "SymbolicLinkGenerator.Shared\SymbolicLinkGenerator.Shared.shproj", "{1A882085-0890-4F97-BB7C-AC0BC14EBCE1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,5 +29,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9D06E5F0-CCAD-4C9E-8024-A4D8FD130D06}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SymbolicLinkGenerator.Shared\SymbolicLinkGenerator.Shared.projitems*{1a882085-0890-4f97-bb7c-ac0bc14ebce1}*SharedItemsImports = 13
+		SymbolicLinkGenerator.Shared\SymbolicLinkGenerator.Shared.projitems*{3e818568-37dc-400a-8b99-b9d272f6684c}*SharedItemsImports = 4
+		SymbolicLinkGenerator.Shared\SymbolicLinkGenerator.Shared.projitems*{69cf894b-95fe-4aaa-9ae9-db9d69dbfb72}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

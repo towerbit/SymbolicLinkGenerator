@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SymbolicLinkGenerator.Shared;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,6 +8,7 @@ using System.IO.Pipes;
 using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -213,13 +215,24 @@ namespace SymbolicLinkGenerator
                     lvw.Columns[2].Text = "Available";
                     foreach (TreeNode subNode in node.Nodes)
                     {
-                        ListViewItem item = new ListViewItem(subNode.Text, IDX_DRIVE);
+                        ListViewItem item = new ListViewItem(subNode.Text);
                         item.Name = subNode.Name;
-                        var drive = subNode.Tag.ToString();
-                        var driveInfo = new DriveInfo(drive);
-                        item.SubItems.Add(ConvertBytesToFileSize(driveInfo.TotalSize)); // 添加磁盘大小列
-                        item.SubItems.Add(ConvertBytesToFileSize(driveInfo.AvailableFreeSpace)); // 可用大小
-                        item.Tag = drive; // 可以将完整路径存储在Tag属性中，以便后续使用
+                        if (subNode.Name.StartsWith("Drive"))
+                        {
+                            item.ImageIndex = IDX_DRIVE;
+                            var drive = subNode.Tag.ToString();
+                            var driveInfo = new DriveInfo(drive);
+                            item.SubItems.Add(ConvertBytesToFileSize(driveInfo.TotalSize)); // 添加磁盘大小列
+                            item.SubItems.Add(ConvertBytesToFileSize(driveInfo.AvailableFreeSpace)); // 可用大小
+                        }
+                        else
+                        {
+                            item.ImageIndex = IDX_FOLDER;
+                            //item.SubItems.Add("");
+                            //var dirInfo = new DirectoryInfo(subNode.Tag.ToString());
+                            //item.SubItems.Add(dirInfo.LastWriteTime.ToString("G"));
+                        }
+                        item.Tag = subNode.Tag; // 可以将完整路径存储在Tag属性中，以便后续使用
                         lvw.Items.Add(item);
                     }
                 }
@@ -332,14 +345,21 @@ namespace SymbolicLinkGenerator
                 string[] specilFolders = new string[]
                 {
                     Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyComputer),
+                    //Environment.GetFolderPath(Environment.SpecialFolder.MyComputer),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
                 };
+                foreach (string specilFolder in specilFolders)
+                {
+                    var folderNode = new TreeNode(Path.GetFileName(specilFolder), IDX_FOLDER, IDX_FOLDER);
+                    folderNode.Name = $"Folder{Guid.NewGuid().ToString("N")}";
+                    folderNode.Tag = specilFolder;
+                    rootNode.Nodes.Add(folderNode);
+                }
 
-                string[] volumes = Environment.GetLogicalDrives();
+                //string[] volumes = Environment.GetLogicalDrives();
 
                 // 获取计算机上所有的驱动器信息
                 DriveInfo[] drives = DriveInfo.GetDrives();
@@ -537,13 +557,14 @@ namespace SymbolicLinkGenerator
         //    return icon;
         //}
 
-        //[DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        //private static extern int SHGetKnownFolderPath(ref Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr ppszPath);
+//[DllImport("shell32.dll", CharSet = CharSet.Auto)]
+//private static extern int SHGetKnownFolderPath(ref Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr ppszPath);
 
-        //[DllImport("user32.dll")]
-        //private static extern bool DestroyIcon(IntPtr hIcon);
-        #endregion
+//[DllImport("user32.dll")]
+//private static extern bool DestroyIcon(IntPtr hIcon);
+#endregion
 
+#if false
         /// <summary>
         /// 尝试创建符号软链接
         /// </summary>
@@ -587,6 +608,7 @@ namespace SymbolicLinkGenerator
             
             return ret;
         }
+#endif
 
         private static void extractEmbeddedResource(string resourceName, string outputPath)
         {
@@ -613,7 +635,8 @@ namespace SymbolicLinkGenerator
             Console.WriteLine($"资源已提取到: {outputPath}");
         }
 
-        public static bool TryMakeLinkByCore(string link, string target, bool showLog)
+        //public static bool TryMakeLinkByCore(string link, string target, bool showLog)
+        public static bool TryMakeLinkByCore(List<dtoSLGItem> items, bool showLog)
         {
             bool ret = false;
             // 检查 SlgCore.exe 文件是否存在
@@ -659,8 +682,23 @@ namespace SymbolicLinkGenerator
                         pipe = new NamedPipeClientStream(".", "Global\\SlgFilePipe", PipeDirection.Out);
                         pipe.Connect(1000); // 连接到管道
 
-                        using (var writer = new StreamWriter(pipe))
-                            writer.WriteLine($"{link},{target}");
+                        //using (var writer = new StreamWriter(pipe))
+                        //    writer.WriteLine($"{link},{target}");
+
+                        var helper = new DataHelper() { Items = items.ToArray() };
+                        var json = helper.ToJson();
+                        byte[] buffer = Encoding.UTF8.GetBytes(json);
+
+                        // 分块发送
+                        int offset = 0;
+                        int chunkSize = 1024; // 每次发送1024字节
+                        while (offset < buffer.Length)
+                        {
+                            int bytesToSend = Math.Min(chunkSize, buffer.Length - offset);
+                            pipe.Write(buffer, offset, bytesToSend);
+                            offset += bytesToSend;
+                        }
+
                         pipe.Dispose();
                         ret = true;
                         break;

@@ -1,10 +1,12 @@
-﻿using System;
+﻿using System.Web.Script.Serialization;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Security.AccessControl;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
+using SymbolicLinkGenerator.Shared;
 
 namespace SymbolicLinkGeneratorCore
 {
@@ -31,8 +33,40 @@ namespace SymbolicLinkGeneratorCore
                         Console.WriteLine("DBUG: 等待普通用户应用程序连接...");
                         pipeServer.WaitForConnection();
                         Console.WriteLine("DBUG: 普通用户应用程序已连接。");
-                        HandleClient(pipeServer);
+                        //HandleClient(pipeServer);
+                        HandleClientEx(pipeServer);
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARN: {ex.Message}");
+                }
+            }
+        }
+
+        private static void HandleClientEx(NamedPipeServerStream pipeServer)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = pipeServer.Read(buffer, 0, buffer.Length)) > 0)
+                    memoryStream.Write(buffer, 0, bytesRead);// 从缓冲区读取全部数据
+
+                string receivedMessage = Encoding.UTF8.GetString(memoryStream.ToArray());
+                Console.WriteLine($"DBUG: 接收到的消息: {receivedMessage}");
+            
+                // 批量处理创建软连接
+                try
+                {
+                    var helper = new DataHelper(receivedMessage);
+                    Task.Run(() =>
+                    {
+                        int i = 0;
+                        foreach (dtoSLGItem item in helper.Items)
+                            i += TryMakeLink(item.Link, item.SourcePath) ? 1 : 0;
+                        Console.WriteLine($"DBUG: 数据处理完毕, 共 {helper.Items.Length} 项，成功 {i} 项。");
+                    });
                 }
                 catch (Exception ex)
                 {

@@ -26,6 +26,7 @@ namespace SymbolicLinkGenerator
                 return; // 退出程序
             }
 
+            System.IO.File.Delete("SlgCore.exe"); // 确保每次释放版本匹配的 SlgCore.exe
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmMain());
