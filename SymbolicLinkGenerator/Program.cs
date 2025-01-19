@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -26,7 +27,16 @@ namespace SymbolicLinkGenerator
                 return; // 退出程序
             }
 
-            System.IO.File.Delete("SlgCore.exe"); // 确保每次释放版本匹配的 SlgCore.exe
+            try
+            {
+                ExplorerHelper.KillProcessCore();
+                System.IO.File.Delete("SlgCore.exe"); // 确保每次释放版本匹配的 SlgCore.exe
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"当前目录下的 SlgCore.exe 未删除, {ex.Message}");
+            }
+            
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmMain());

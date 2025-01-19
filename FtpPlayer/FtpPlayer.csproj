@@ -1,18 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3E818568-37DC-400A-8B99-B9D272F6684C}</ProjectGuid>
+    <ProjectGuid>{D058E38B-1AA3-4664-808F-AC49A2A861E0}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SymbolicLinkGenerator</RootNamespace>
-    <AssemblyName>SlgUI</AssemblyName>
+    <RootNamespace>FtpPlayer</RootNamespace>
+    <AssemblyName>FtpPlayer</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,33 +32,35 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup />
   <PropertyGroup>
-    <ApplicationIcon>Resources\imageres_5357.ico</ApplicationIcon>
+    <ApplicationIcon>FtpPlayer.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExplorerHelper.cs" />
-    <Compile Include="frmMain.cs">
+    <Compile Include="frmFtpPlayer.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmMain.Designer.cs">
-      <DependentUpon>frmMain.cs</DependentUpon>
+    <Compile Include="frmFtpPlayer.Designer.cs">
+      <DependentUpon>frmFtpPlayer.cs</DependentUpon>
     </Compile>
+    <Compile Include="FtpClient.cs" />
+    <Compile Include="FtpFileInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="frmMain.resx">
-      <DependentUpon>frmMain.cs</DependentUpon>
+    <EmbeddedResource Include="frmFtpPlayer.resx">
+      <DependentUpon>frmFtpPlayer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -88,17 +89,13 @@
     <None Include="Resources\imageres_109.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\imageres_5357.ico" />
-    <Content Include="Resources\imageres_1301.ico" />
-    <Content Include="Resources\imageres_5359.ico" />
-    <EmbeddedResource Include="SlgCore.exe" />
+    <None Include="Resources\imageres_1301.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NotificationUI\NotificationUI.csproj">
-      <Project>{98ce839b-b674-4116-8626-6f7d3825f900}</Project>
-      <Name>NotificationUI</Name>
-    </ProjectReference>
+    <None Include="Resources\imageres_5359.ico" />
   </ItemGroup>
-  <Import Project="..\SymbolicLinkGenerator.Shared\SymbolicLinkGenerator.Shared.projitems" Label="Shared" />
+  <ItemGroup>
+    <Content Include="FtpPlayer.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

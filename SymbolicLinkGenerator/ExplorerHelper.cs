@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -22,7 +23,7 @@ namespace SymbolicLinkGenerator
         private const int IDX_FOLDER = 1;
         private const int IDX_COMPUTER = 2;
 
-        private static string _cumputerName = "此电脑";
+        private static string _cumputerName = "This PC"; // "此电脑";
 
         private static ImageList _imageList;
 
@@ -53,7 +54,8 @@ namespace SymbolicLinkGenerator
             // 检查文件是否存在
             if (!File.Exists(path) && !Directory.Exists(path))
             {
-                throw new FileNotFoundException("指定的路径不存在。", path);
+                // 指定的路径不存在。
+                throw new FileNotFoundException("The specified path does not exist.", path);
             }
 
             // 创建 FileInfo 对象
@@ -129,12 +131,18 @@ namespace SymbolicLinkGenerator
         private static extern int GetFinalPathNameByHandle(IntPtr hFile, System.Text.StringBuilder lpszFilePath, int cchFilePath, int dwFlags);
         #endregion
 
+        public static bool IsInvalidFileName(string label)
+        {
+            return label.Any(c => Path.GetInvalidFileNameChars()
+                                      .Contains(c));
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="node"></param>
         /// <param name="lvw"></param>
-        public static void ReloadListView(TreeNode node, ListView lvw)
+        public static void ReloadFolderFiles(TreeNode node, ListView lvw)
         {
            
             if (lvw.SmallImageList == null)
@@ -256,7 +264,7 @@ namespace SymbolicLinkGenerator
             // 设置ListView的列宽以适应内容
             lvw.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
 
-            int iWidth = 20; // 留出滚动条宽度
+            int iWidth = 30; // 留出滚动条宽度
             using (var g = lvw.CreateGraphics())
                 for (int i = 1; i < lvw.Columns.Count; i++)
                 {
@@ -297,8 +305,7 @@ namespace SymbolicLinkGenerator
         {
             if (tvw.ImageList == null && tvw.StateImageList ==null)
             {
-                ModifyTreeViewStyle(tvw.Handle);
-
+                //ModifyTreeViewStyle(tvw.Handle);
                 tvw.ImageList = new ImageList();
                 tvw.ImageList.ImageSize = new Size(16, 16);
                 tvw.ImageList.ColorDepth = ColorDepth.Depth32Bit;
@@ -369,7 +376,11 @@ namespace SymbolicLinkGenerator
                 {
                     if (drive.IsReady)
                     {
-                        var driveNode = new TreeNode($"{drive.VolumeLabel}({drive.Name.Substring(0, 2)})", IDX_DRIVE, IDX_DRIVE);
+                        var driveLabel = drive.VolumeLabel;
+                        
+                        if (string.IsNullOrWhiteSpace(driveLabel))
+                            driveLabel = "Local Drive"; // 如果没有标签，则使用默认名称:本地磁盘
+                        var driveNode = new TreeNode($"{driveLabel}({drive.Name.Substring(0, 2)})", IDX_DRIVE, IDX_DRIVE);
 
                         driveNode.Name = $"Drive{Guid.NewGuid().ToString("N")}";//$"Drive{driveNode}";
                         driveNode.Tag = drive.Name; // 可以将完整路径存储在Tag属性中，以便后续使用
@@ -476,7 +487,7 @@ namespace SymbolicLinkGenerator
                     }
 
                     tvw.SelectedNode = node;
-                    ReloadListView(node, lvw);
+                    ReloadFolderFiles(node, lvw);
                 }
             }
             else
@@ -500,7 +511,7 @@ namespace SymbolicLinkGenerator
         private const uint SHGFI_USEFILEATTRIBUTES = 0x10;
         private const uint FILE_ATTRIBUTE_DIRECTORY = 0x10;
 
-        const uint SHGFI_DISPLAYNAME = 0x000000200;     // 获取显示名
+        const uint SHGFI_DISPLAYNAME = 0x000000200;  // 获取显示名
         const uint SHGFI_TYPENAME = 0x000000400;     // 获取类型名
 
         /// <summary>
@@ -671,50 +682,52 @@ namespace SymbolicLinkGenerator
                 p.Start();
             }
 
-            //if (pipe != null)
             NamedPipeClientStream pipe = null;
-            while (true)
+            try
             {
-                if (null == pipe)
+                pipe = new NamedPipeClientStream(".", "Global\\SlgFilePipe", PipeDirection.InOut);
+                pipe.Connect(1000); // 连接到管道
+                Debug.Print("连接 SlgCore 管道成功");
+
+                //using (var writer = new StreamWriter(pipe))
+                //    writer.WriteLine($"{link},{target}");
+
+                var helper = new DataHelper() { Items = items.ToArray() };
+                var json = helper.ToJson();
+                byte[] buffer = Encoding.UTF8.GetBytes(json);
+
+                // 分块发送
+                int offset = 0;
+                int chunkSize = 1024; // 每次发送1024字节
+                while (offset < buffer.Length)
                 {
-                    try
-                    {
-                        pipe = new NamedPipeClientStream(".", "Global\\SlgFilePipe", PipeDirection.Out);
-                        pipe.Connect(1000); // 连接到管道
-
-                        //using (var writer = new StreamWriter(pipe))
-                        //    writer.WriteLine($"{link},{target}");
-
-                        var helper = new DataHelper() { Items = items.ToArray() };
-                        var json = helper.ToJson();
-                        byte[] buffer = Encoding.UTF8.GetBytes(json);
-
-                        // 分块发送
-                        int offset = 0;
-                        int chunkSize = 1024; // 每次发送1024字节
-                        while (offset < buffer.Length)
-                        {
-                            int bytesToSend = Math.Min(chunkSize, buffer.Length - offset);
-                            pipe.Write(buffer, offset, bytesToSend);
-                            offset += bytesToSend;
-                        }
-
-                        pipe.Dispose();
-                        ret = true;
-                        break;
-                    }
-                    catch (TimeoutException)
-                    {
-                        Debug.Print("无法连接到 SlgCore");
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Print(ex.Message);
-                    }
+                    int bytesToSend = Math.Min(chunkSize, buffer.Length - offset);
+                    pipe.Write(buffer, offset, bytesToSend);
+                    offset += bytesToSend;
                 }
-                Application.DoEvents();
-                Thread.Sleep(100);
+                pipe.Flush();
+                Debug.Print("向 SlgCore 管道发送数据完毕");
+                //ret = true;
+
+                buffer = new byte[4];
+                int iRead =  pipe.Read(buffer, 0, buffer.Length);
+                // 服务端返回成功创建的软连接数
+                var response = BitConverter.ToInt32(buffer, 0);
+                Debug.Print($"收到服务端应答:{response}");
+                ret = response == items.Count;
+            }
+            catch (TimeoutException)
+            {
+                Debug.Print("与 SlgCore 管道通讯超时");
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"与 SlgCore 管道通讯异常: {ex.Message}");
+            }
+            finally
+            {
+                Debug.Print("与 SlgCore 管道通讯结束");
+                pipe?.Dispose();
             }
             return ret;
         }
@@ -781,6 +794,7 @@ namespace SymbolicLinkGenerator
         #endregion
 
         #region 修改 TreeView 为系统样式
+        /*
         // Win32 API 函数
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -796,6 +810,38 @@ namespace SymbolicLinkGenerator
         {
             // 发送消息以修改 TreeView 样式
             SendMessage(handle, 0x0001, (IntPtr)(TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT), IntPtr.Zero);
+        }
+        */
+        internal static void SetupAeroStyle(TreeView tvw)
+        {
+            // 设置 TreeView 样式以支持 Aero 效果
+            tvw.HotTracking = true;           // 启用热追踪效果
+            tvw.ShowLines = false;            // 隐藏传统连接线
+            tvw.ShowPlusMinus = true;         // 显示展开/折叠按钮
+            tvw.ShowRootLines = false;        // 隐藏根节点连线
+            //tvw.BorderStyle = BorderStyle.None; // 无边框样式
+            tvw.FullRowSelect = true;
+            tvw.HideSelection = false;
+            tvw.ItemHeight = 24;
+            tvw.Indent = 20;
+            SetWindowTheme(tvw.Handle, "explorer", null);
+        }
+
+        [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+        private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+
+        internal static void SetupAeroStyle(ListView lvw)
+        {
+            lvw.View = View.Details;
+            lvw.FullRowSelect = true;
+            lvw.GridLines = false;
+            lvw.MultiSelect = true;
+            lvw.HideSelection = false;
+            //lvw.DoubleBuffered = true;
+            
+            // 设置头部样式
+            lvw.OwnerDraw = false; // 让系统处理绘制
+            SetWindowTheme(lvw.Handle, "explorer", null);
         }
         #endregion
     }

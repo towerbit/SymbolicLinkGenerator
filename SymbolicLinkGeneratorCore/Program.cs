@@ -1,5 +1,4 @@
-﻿using System.Web.Script.Serialization;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -27,8 +26,9 @@ namespace SymbolicLinkGeneratorCore
             {
                 try
                 {
-                    using (var pipeServer = new NamedPipeServerStream("Global\\SlgFilePipe", PipeDirection.In,
-                                                                        1, PipeTransmissionMode.Byte, PipeOptions.None, 1024, 1024, pipeSecurity))
+                    using (var pipeServer = new NamedPipeServerStream("Global\\SlgFilePipe", PipeDirection.InOut,
+                                                                      1, PipeTransmissionMode.Byte, PipeOptions.None, 
+                                                                      1024, 1024, pipeSecurity))
                     {
                         Console.WriteLine("DBUG: 等待普通用户应用程序连接...");
                         pipeServer.WaitForConnection();
@@ -36,6 +36,7 @@ namespace SymbolicLinkGeneratorCore
                         //HandleClient(pipeServer);
                         HandleClientEx(pipeServer);
                     }
+                    Console.WriteLine($"DBUG: 服务端关闭了管道");
                 }
                 catch (Exception ex)
                 {
@@ -46,12 +47,18 @@ namespace SymbolicLinkGeneratorCore
 
         private static void HandleClientEx(NamedPipeServerStream pipeServer)
         {
+            const int JSON_ARRAY_END_FLAG = 93; // 93 = ']'
             using (var memoryStream = new MemoryStream())
             {
                 byte[] buffer = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = pipeServer.Read(buffer, 0, buffer.Length)) > 0)
+                {
                     memoryStream.Write(buffer, 0, bytesRead);// 从缓冲区读取全部数据
+                    // 判断发送结束
+                    if (buffer[bytesRead - 1] == JSON_ARRAY_END_FLAG)
+                        break;
+                }
 
                 string receivedMessage = Encoding.UTF8.GetString(memoryStream.ToArray());
                 Console.WriteLine($"DBUG: 接收到的消息: {receivedMessage}");
@@ -60,13 +67,16 @@ namespace SymbolicLinkGeneratorCore
                 try
                 {
                     var helper = new DataHelper(receivedMessage);
-                    Task.Run(() =>
-                    {
-                        int i = 0;
-                        foreach (dtoSLGItem item in helper.Items)
-                            i += TryMakeLink(item.Link, item.SourcePath) ? 1 : 0;
-                        Console.WriteLine($"DBUG: 数据处理完毕, 共 {helper.Items.Length} 项，成功 {i} 项。");
-                    });
+                    int i = 0;
+                    foreach (dtoSLGItem item in helper.Items)
+                        i += TryMakeLink(item.Link, item.SourcePath) ? 1 : 0;
+                    Console.WriteLine($"DBUG: 数据处理完毕, 共 {helper.Items.Length} 项，成功 {i} 项。");
+                    
+                    // 通过管道应答结果，返回创建的软连接数
+                    buffer = BitConverter.GetBytes(i);
+                    pipeServer.Write(buffer, 0, buffer.Length);
+                    pipeServer.Flush(); // 确保数据被发送
+                    Console.WriteLine($"DBUG: 向客户端应答 {i}");
                 }
                 catch (Exception ex)
                 {
