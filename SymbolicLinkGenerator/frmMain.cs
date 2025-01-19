@@ -116,12 +116,12 @@ namespace SymbolicLinkGenerator
             //lvwDst.DragOver += lvwDestDragOverEventHandler;
             lvwDst.DragDrop += lvwDstDragDropEventHandler;
             lvwDst.KeyDown += lvwDstKeyDownEventHandler;
-            lvwDst.ItemSelectionChanged += (s, e) => 
-            {
-                var lvw = (ListView)s;
-                var item = e.Item;
-                lblDstPath.Text = item.ToolTipText;
-            };
+            //lvwDst.ItemSelectionChanged += (s, e) => 
+            //{
+            //    var lvw = (ListView)s;
+            //    var item = e.Item;
+            //    //lblDstPath.Text = item.ToolTipText;
+            //};
             lvwDst.SelectedIndexChanged += lvwSelectedIndexChangedEventHandler;
             lvwDst.GotFocus += (s, e) => _activeListView = lvwDst;
             lvwDst.LostFocus += (s, e) => { if (_activeListView == lvwDst) _activeListView = null; };
@@ -559,7 +559,15 @@ namespace SymbolicLinkGenerator
             base.OnFormClosed(e);
             ExplorerHelper.KillProcessCore();
         }
-        
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            spcMain.Dock = DockStyle.Fill;
+            txtSrcPath.Width = spcSrc.Width - btnSrc.Width - lblSrcPath.Width - SPRING_BORDER;
+            txtDstPath.Width = spcDst.Width - btnDst.Width - lblDstPath.Width - SPRING_BORDER;
+        }
+
         #endregion
     }
 }
