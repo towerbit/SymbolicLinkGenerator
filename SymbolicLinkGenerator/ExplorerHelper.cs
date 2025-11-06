@@ -407,8 +407,8 @@ namespace SymbolicLinkGenerator
                 // 添加特殊目录
                 string[] specilFolders = new string[]
                 {
-                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                     //Environment.GetFolderPath(Environment.SpecialFolder.MyComputer),
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
                     Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),

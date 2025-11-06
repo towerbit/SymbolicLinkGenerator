@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -36,7 +37,8 @@ namespace SymbolicLinkGenerator
             {
                 Debug.Print($"当前目录下的 SlgCore.exe 未删除, {ex.Message}");
             }
-            
+            SetProcessDPIAware();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmMain());
@@ -44,5 +46,8 @@ namespace SymbolicLinkGenerator
             // 释放互斥体
             mutex.ReleaseMutex();
         }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
     }
 }
