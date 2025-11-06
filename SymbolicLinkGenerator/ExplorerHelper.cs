@@ -26,20 +26,75 @@ namespace SymbolicLinkGenerator
         private static string _cumputerName = "This PC"; // "此电脑";
 
         private static ImageList _imageList;
+        private const int LVW_ICON_BORDER = 4;
 
         static ExplorerHelper()
         {
             _imageList = new ImageList();
-            _imageList.ImageSize = new Size(16, 16);
+            _imageList.ImageSize = new Size(16 + LVW_ICON_BORDER * 2,
+                                            16 + LVW_ICON_BORDER * 2);
             _imageList.ColorDepth = ColorDepth.Depth32Bit;
 
             var driveIcon = GetSystemIcon("C:"); // 获取通用磁盘的图标
-            _imageList.Images.Add(driveIcon);
+            var borderedDriveIcon = AddTransparentBorder(driveIcon, LVW_ICON_BORDER); // 添加2像素边框
+            _imageList.Images.Add(borderedDriveIcon);
             _dicIcons["Drive"] = IDX_DRIVE; // 磁盘图标的索引
 
             var folderIcon = GetSystemIcon("."); // 获取通用的文件夹图标
-            _imageList.Images.Add(folderIcon);
+            var borderedFolderIcon = AddTransparentBorder(folderIcon, LVW_ICON_BORDER); // 添加2像素边框
+            _imageList.Images.Add(borderedFolderIcon);
             _dicIcons["Folder"] = IDX_FOLDER; // 文件夹图标的索引
+        }
+
+        /// <summary>
+        /// 为 Icon 添加透明边框，支持指定目标尺寸
+        /// </summary>
+        /// <param name="originalIcon">原始图标</param>
+        /// <param name="borderSize">边框大小（像素）</param>
+        /// <param name="targetSize">目标尺寸，如果不指定则自动计算</param>
+        /// <returns>带透明边框的新图标</returns>
+        private static Icon AddTransparentBorder(Icon originalIcon, int borderSize, Size? targetSize = null)
+        {
+            if (originalIcon == null)
+                throw new ArgumentNullException(nameof(originalIcon));
+
+            if (borderSize <= 0)
+                return originalIcon;
+
+            // 计算新尺寸
+            Size newSize = targetSize ?? new Size(originalIcon.Width + borderSize * 2, 
+                                                 originalIcon.Height + borderSize * 2);
+
+            // 创建新的位图
+            using (Bitmap bitmap = new Bitmap(newSize.Width, newSize.Height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    // 设置高质量绘图
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+            
+                    // 清除为透明背景
+                    g.Clear(Color.Transparent);
+            
+                    // 计算居中绘制的位置
+                    Rectangle destRect = new Rectangle(
+                        (newSize.Width - originalIcon.Width) / 2,
+                        (newSize.Height - originalIcon.Height) / 2,
+                        originalIcon.Width,
+                        originalIcon.Height);
+            
+                    // 将图标转换为位图并绘制
+                    using (Bitmap iconBitmap = originalIcon.ToBitmap())
+                    {
+                        g.DrawImage(iconBitmap, destRect);
+                    }
+                }
+        
+                // 将位图转换为图标
+                return Icon.FromHandle(bitmap.GetHicon());
+            }
         }
 
         /// <summary>
@@ -196,7 +251,8 @@ namespace SymbolicLinkGenerator
                         if (!_dicIcons.TryGetValue(fileInfo.Extension, out iconIndex))
                         {
                             var icon = Icon.ExtractAssociatedIcon(file);
-                            lvw.SmallImageList.Images.Add(icon);
+                            var borderedIcon = AddTransparentBorder(icon, LVW_ICON_BORDER);
+                            lvw.SmallImageList.Images.Add(borderedIcon);
                             iconIndex = lvw.SmallImageList.Images.Count - 1;
                             _dicIcons[fileInfo.Extension] = iconIndex; // 存储文件图标在ImageList中的索引
                             //icon.Dispose(); // 释放图标资源
@@ -315,9 +371,9 @@ namespace SymbolicLinkGenerator
                 //var computerIcon = SystemIcons.WinLogo;
                 Icon computerIcon = Properties.Resources.computer;
                 Icon openedFolderIcon = Properties.Resources.opend_folder;
-                tvw.ImageList.Images.Add(driveIcon);    // 0
-                tvw.ImageList.Images.Add(folderIcon);   // 1
-                tvw.ImageList.Images.Add(computerIcon); // 2
+                tvw.ImageList.Images.Add(driveIcon);        // 0
+                tvw.ImageList.Images.Add(folderIcon);       // 1
+                tvw.ImageList.Images.Add(computerIcon);     // 2
                 tvw.ImageList.Images.Add(openedFolderIcon); // 3
                 tvw.StateImageList = tvw.ImageList;
 
@@ -364,6 +420,7 @@ namespace SymbolicLinkGenerator
                     folderNode.Name = $"Folder{Guid.NewGuid().ToString("N")}";
                     folderNode.Tag = specilFolder;
                     rootNode.Nodes.Add(folderNode);
+                    AddSubFolders(folderNode); // 预加载子文件夹
                 }
 
                 //string[] volumes = Environment.GetLogicalDrives();
@@ -385,6 +442,7 @@ namespace SymbolicLinkGenerator
                         driveNode.Name = $"Drive{Guid.NewGuid().ToString("N")}";//$"Drive{driveNode}";
                         driveNode.Tag = drive.Name; // 可以将完整路径存储在Tag属性中，以便后续使用
                         rootNode.Nodes.Add(driveNode);
+                        AddSubFolders(driveNode);
                     }
                 }
                 rootNode.Expand();
@@ -402,7 +460,7 @@ namespace SymbolicLinkGenerator
         /// <param name="parentNode"></param>
         /// <param name="clear"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static void AddSubForlders(TreeNode parentNode, bool clear = false)
+        public static void AddSubFolders_old(TreeNode parentNode, bool clear = false)
         {
             if (parentNode == null)
                 throw new ArgumentNullException("parentNode");
@@ -451,6 +509,72 @@ namespace SymbolicLinkGenerator
                 parentNode.Expand();
             }
         }
+        
+        public static void AddSubFolders(TreeNode node, bool reload = false)
+        {
+            if (node.Nodes.Count > 0 && !reload)
+                return;
+
+            string path = node.Tag.ToString();
+
+            try
+            {
+                // 清除现有子节点（如果是重新加载）
+                if (reload)
+                    node.Nodes.Clear();
+
+                // 获取当前目录下的所有子目录
+                DirectoryInfo dirInfo = new DirectoryInfo(path);
+                DirectoryInfo[] subDirs = dirInfo.GetDirectories();
+
+                foreach (DirectoryInfo dir in subDirs)
+                {
+                    // 检查是否有访问权限
+                    try
+                    {
+                        // 创建子节点
+                        TreeNode subNode = new TreeNode(dir.Name)
+                        {
+                            Name = "Folder." + dir.FullName.GetHashCode(),
+                            Tag = dir.FullName,
+                            ImageIndex = 1,      // 文件夹图标索引
+                            SelectedImageIndex = 1
+                        };
+
+                        // 关键部分：检查此子目录是否还有子目录
+                        if (hasSubdirectories(dir))
+                        {
+                            // 添加一个虚拟子节点以显示展开符号
+                            subNode.Nodes.Add(new TreeNode() { Text = "Loading..." });
+                        }
+
+                        node.Nodes.Add(subNode);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // 跳过没有权限访问的目录
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 处理异常情况
+                Console.WriteLine($"Error loading directory structure: {ex.Message}");
+            }
+
+            bool hasSubdirectories(DirectoryInfo dir)
+            {
+                try
+                {
+                    return dir.GetDirectories().Length > 0;
+                }
+                catch (Exception)
+                {
+
+                    return false;
+                }
+            }
+        }
 
         /// <summary>
         /// 
@@ -458,7 +582,7 @@ namespace SymbolicLinkGenerator
         /// <param name="path"></param>
         /// <param name="tvw"></param>
         /// <param name="lvw"></param>
-        public static void AddForlder(string path, TreeView tvw, ListView lvw)
+        public static void AddFolder(string path, TreeView tvw, ListView lvw)
         {
             if (Directory.Exists(path))
             {
@@ -478,12 +602,12 @@ namespace SymbolicLinkGenerator
                 // 递推添加子节点
                 if (node != null)
                 {
-                    AddSubForlders(node);
+                    AddSubFolders(node);
                     for (int i = 1; i < pathArray.Length; i++)
                     {
                         node = findNodeByText(node.Nodes, pathArray[i]);
                         if (null != node)
-                            AddSubForlders(node);
+                            AddSubFolders(node);
                     }
 
                     tvw.SelectedNode = node;
@@ -838,7 +962,7 @@ namespace SymbolicLinkGenerator
             lvw.MultiSelect = true;
             lvw.HideSelection = false;
             //lvw.DoubleBuffered = true;
-            
+
             // 设置头部样式
             lvw.OwnerDraw = false; // 让系统处理绘制
             SetWindowTheme(lvw.Handle, "explorer", null);

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Media;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace SymbolicLinkGenerator
 {
@@ -75,6 +76,7 @@ namespace SymbolicLinkGenerator
             //tvwSrc.HideSelection = false;
             tvwSrc.BackColor = SystemColors.ControlLight;
             tvwSrc.AfterSelect += tvwAfterSelectEventHandler;
+            tvwSrc.BeforeExpand += tvwBeforeExpandEventHandler;
 
             //lvwSrc.FullRowSelect = true;
             lvwSrc.MultiSelect = true;
@@ -110,6 +112,7 @@ namespace SymbolicLinkGenerator
             //tvwDst.HideSelection = false;
             tvwDst.AfterSelect += tvwAfterSelectEventHandler;
             //tvwDst.NodeMouseDoubleClick += tvwNodeMouseDoubleClickEventHnadler;
+            tvwDst.BeforeExpand += tvwBeforeExpandEventHandler;
 
             //lvwDst.AllowDrop = false;
             lvwDst.AllowDrop = true;
@@ -154,6 +157,8 @@ namespace SymbolicLinkGenerator
             msMain.Visible = false;
             #endregion
         }
+        
+        #region EVENTHANDLER
 
         private void lvwDstBeforeLabelEditEventHandler(object sender, LabelEditEventArgs e)
         {
@@ -216,7 +221,6 @@ namespace SymbolicLinkGenerator
             //}
         }
 
-        #region EVENTHANDLER
 
         private void txtDirGotFocusEventHandler(object sender, EventArgs e)
         {
@@ -234,7 +238,7 @@ namespace SymbolicLinkGenerator
                 var lvw = txt.Name.Contains("Src") ? lvwSrc : lvwDst;
                 //var lblCount = txt.Name.Contains("Src") ? lblSrcCount : lblDstCount;
                 //var lblSelCount = txt.Name.Contains("Src") ? lblSrcSelCount : lblDstSelCount;
-                ExplorerHelper.AddForlder(txt.Text, tvw, lvw);
+                ExplorerHelper.AddFolder(txt.Text, tvw, lvw);
                 lvwItemCountUpdate(lvw);
                 if (tvw == tvwDst)
                     lvw.AllowDrop = tvw.SelectedNode != null 
@@ -412,7 +416,7 @@ namespace SymbolicLinkGenerator
                     if (node != null)
                     {
                         tvw.SelectedNode = node;
-                        ExplorerHelper.AddSubForlders(node);
+                        ExplorerHelper.AddSubFolders(node);
                         ExplorerHelper.ReloadFolderFiles(node, lvw);
                         lvwItemCountUpdate(lvw);
                         if (tvw == tvwDst)
@@ -440,6 +444,15 @@ namespace SymbolicLinkGenerator
             }
         }
 
+        private void tvwBeforeExpandEventHandler(object sender, TreeViewCancelEventArgs e)
+        {
+            if (e.Node.Nodes.Count == 1 && 
+                e.Node.Nodes[0].Text == "Loading...")
+            {
+                e.Node.Nodes.Clear();
+                ExplorerHelper.AddSubFolders(e.Node);
+            }
+        }
         #endregion
 
         private void lvwItemCountUpdate(ListView lvw)
@@ -465,7 +478,7 @@ namespace SymbolicLinkGenerator
 
             if (currNode.Parent != null)
             {
-                ExplorerHelper.AddSubForlders(currNode, clearall);
+                ExplorerHelper.AddSubFolders(currNode, clearall);
                 ExplorerHelper.ReloadFolderFiles(currNode, lvw);
                 lvwItemCountUpdate(lvw);
                 txt.Text = currNode.Tag.ToString();
@@ -547,7 +560,7 @@ namespace SymbolicLinkGenerator
                             Debug.Print($"{path} 删除失败");
                     }
                     if (null != pNode)
-                        ExplorerHelper.AddSubForlders(pNode, true);
+                        ExplorerHelper.AddSubFolders(pNode, true);
                 }
             }
             else
