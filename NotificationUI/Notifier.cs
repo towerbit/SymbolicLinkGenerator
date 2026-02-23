@@ -10,7 +10,8 @@ namespace NotificationUI
 
         private const int _defInterval = 6000;
         //private readonly Color _defBgColor = Color.FromArgb(83, 92, 104);
-        private readonly Color _defBgColor = Color.FromArgb(36, 104, 188);// (44, 111, 229);
+        //private readonly Color _defBgColor = Color.FromArgb(44, 111, 229);
+        private readonly Color _defBgColor = Color.FromArgb(36, 104, 188);
 
         /// <summary>
         /// 显示范围，默认为主屏工作区，可以设置成主窗体的 Bounds
@@ -24,11 +25,10 @@ namespace NotificationUI
 
         #endregion
 
+        public event EventHandler MessageAreaClick;
+
         #region Sucess
 
-        public EventHandler MessageAreaClick;
-
-        
         public void ShowSucess(string message)
         {
             ShowSucess(message, _defInterval);
@@ -38,7 +38,7 @@ namespace NotificationUI
         {
             var frm = new frmNotifier();
             frm.WorkingArea = this.WorkingArea;
-            frm.lblMessage.Click += (s, e) => { MessageAreaClick?.Invoke(s, e); };
+            frm.lblMessage.Click += (s, e) =>  MessageAreaClick?.Invoke(s, e); 
             frm.ShowAlert(message, ToolTipIcon.Info, interval);
         }
 
@@ -55,7 +55,7 @@ namespace NotificationUI
         {
             var frm = new frmNotifier();
             frm.WorkingArea = this.WorkingArea;
-            frm.lblMessage.Click += (s, e) => { MessageAreaClick?.Invoke(s, e); };
+            frm.lblMessage.Click += (s, e) =>  MessageAreaClick?.Invoke(s, e);
             frm.ShowAlert(message, ToolTipIcon.None, interval);
         }
 
@@ -72,7 +72,7 @@ namespace NotificationUI
         {
             var frm = new frmNotifier();
             frm.WorkingArea = this.WorkingArea;
-            frm.lblMessage.Click += (s, e) => { MessageAreaClick?.Invoke(s, e); };
+            frm.lblMessage.Click += (s, e) => MessageAreaClick?.Invoke(s, e);
             frm.ShowAlert(message, ToolTipIcon.Warning, interval);
         }
 
@@ -89,7 +89,7 @@ namespace NotificationUI
         {
             var frm = new frmNotifier();
             frm.WorkingArea = this.WorkingArea;
-            frm.lblMessage.Click += (s, e) => { MessageAreaClick?.Invoke(s, e); };
+            frm.lblMessage.Click += (s, e) => MessageAreaClick?.Invoke(s, e);
             frm.ShowAlert(message, ToolTipIcon.Error, interval);
         }
 
@@ -97,24 +97,31 @@ namespace NotificationUI
 
         #region Custom
 
-        public void ShowCustom(string message, Image image = null, Color color = default)
+        public void ShowCustom(string message, 
+                               Image image = null, 
+                               Color bgColor = default)
         {
-            ShowCustom(message, image, color, _defInterval );
+            ShowCustom(message, image, bgColor, _defInterval );
         }
 
-        public void ShowCustom(string message, Image image = null, Color color = default, int interval= _defInterval)
+        public void ShowCustom(string message, 
+                               Image image = null, 
+                               Color bgColor = default, 
+                               int interval= _defInterval)
         {
             var frm = new frmNotifier();
             frm.WorkingArea = this.WorkingArea;
-            frm.lblMessage.Click += (s, e) => { MessageAreaClick?.Invoke(s, e); };
-            frm.ShowCustom(message, image, color == default ? _defBgColor : color, interval );
+            frm.lblMessage.Click += (s, e) => MessageAreaClick?.Invoke(s, e);
+            frm.ShowCustom(message, image, bgColor == default ? _defBgColor : bgColor, interval );
         }
 
-        public void Show(string message, ToolTipIcon icon, int interval = _defInterval)
+        public void Show(string message, 
+                         ToolTipIcon icon, 
+                         int interval = _defInterval)
         {
             var frm = new frmNotifier();
             frm.WorkingArea = this.WorkingArea;
-            frm.lblMessage.Click += (s, e) => { MessageAreaClick?.Invoke(s, e); };
+            frm.lblMessage.Click += (s, e) => MessageAreaClick?.Invoke(s, e);
             frm.ShowAlert(message, icon, interval, _defBgColor);
         }
 

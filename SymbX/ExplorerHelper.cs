@@ -1,4 +1,4 @@
-﻿using SymbolicLinkGenerator.Shared;
+﻿using SymbX.Shared;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace SymbolicLinkGenerator
+namespace SymbX
 {
     internal static class ExplorerHelper
     {
@@ -63,7 +63,7 @@ namespace SymbolicLinkGenerator
 
             // 计算新尺寸
             Size newSize = targetSize ?? new Size(originalIcon.Width + borderSize * 2, 
-                                                 originalIcon.Height + borderSize * 2);
+                                                  originalIcon.Height + borderSize * 2);
 
             // 创建新的位图
             using (Bitmap bitmap = new Bitmap(newSize.Width, newSize.Height))
@@ -199,10 +199,18 @@ namespace SymbolicLinkGenerator
         /// <param name="lvw"></param>
         public static void ReloadFolderFiles(TreeNode node, ListView lvw)
         {
-           
-            if (lvw.SmallImageList == null)
-                lvw.SmallImageList = _imageList;
 
+            if (lvw.SmallImageList == null)
+            {
+                //lvw.SmallImageList = _imageList;
+                // 强迫症患者发现 ListView 的图标列表要比 TreeView 的图标列表矮一个像素才能对其
+                lvw.SmallImageList = new ImageList();
+                lvw.SmallImageList.ColorDepth = ColorDepth.Depth32Bit;
+                lvw.SmallImageList.ImageSize = new Size(16 + LVW_ICON_BORDER * 2,
+                                                        16 + LVW_ICON_BORDER * 2 - 1);
+                foreach(Image img in _imageList.Images)
+                    lvw.SmallImageList.Images.Add(img);
+            }
             lvw.Cursor = Cursors.WaitCursor;
             lvw.BeginUpdate();
             // 清除ListView中的现有项
@@ -771,21 +779,22 @@ namespace SymbolicLinkGenerator
         }
 
         //public static bool TryMakeLinkByCore(string link, string target, bool showLog)
-        public static bool TryMakeLinkByCore(List<dtoSLGItem> items, bool showLog)
+        public static bool TryMakeLinkByCore(List<SymbXItem> items, bool showLog)
         {
             bool ret = false;
             // 检查 SlgCore.exe 文件是否存在
             //var outputFile = Path.Combine(Path.GetTempPath(), "SlgCore.exe");
-            var outputFile = Path.Combine(Application.StartupPath, "SlgCore.exe");
-            if (!File.Exists("SlgCore.exe"))
+            var exeFile = SymbXParams.SYMBX_CORE + ".exe";
+            var outputFile = Path.Combine(Application.StartupPath, exeFile);
+            if (!File.Exists(exeFile))
             {
                 // 从嵌入的资源中释放文件：名字空间.文件名.扩展名
-                var resourceName = "SymbolicLinkGenerator.SlgCore.exe";
+                var resourceName = $"SymbX.{exeFile}";
                 extractEmbeddedResource(resourceName, outputFile);
             }
 
             // 检查 SlgCore 进程是否已存在, 没有则需要启动它
-            if (Process.GetProcessesByName("SlgCore").Length == 0)
+            if (Process.GetProcessesByName(SymbXParams.SYMBX_CORE).Length == 0)
             {
                 var p = new Process();
                 p.StartInfo.FileName = outputFile;
@@ -809,9 +818,9 @@ namespace SymbolicLinkGenerator
             NamedPipeClientStream pipe = null;
             try
             {
-                pipe = new NamedPipeClientStream(".", "Global\\SlgFilePipe", PipeDirection.InOut);
+                pipe = new NamedPipeClientStream(".", SymbXParams.SYMBX_PIPE, PipeDirection.InOut);
                 pipe.Connect(1000); // 连接到管道
-                Debug.Print("连接 SlgCore 管道成功");
+                Debug.Print("连接管道成功");
 
                 //using (var writer = new StreamWriter(pipe))
                 //    writer.WriteLine($"{link},{target}");
@@ -830,7 +839,7 @@ namespace SymbolicLinkGenerator
                     offset += bytesToSend;
                 }
                 pipe.Flush();
-                Debug.Print("向 SlgCore 管道发送数据完毕");
+                Debug.Print("向管道发送数据完毕");
                 //ret = true;
 
                 buffer = new byte[4];
@@ -842,15 +851,15 @@ namespace SymbolicLinkGenerator
             }
             catch (TimeoutException)
             {
-                Debug.Print("与 SlgCore 管道通讯超时");
+                Debug.Print("与管道通讯超时");
             }
             catch (Exception ex)
             {
-                Debug.Print($"与 SlgCore 管道通讯异常: {ex.Message}");
+                Debug.Print($"与管道通讯异常: {ex.Message}");
             }
             finally
             {
-                Debug.Print("与 SlgCore 管道通讯结束");
+                Debug.Print("与管道通讯结束");
                 pipe?.Dispose();
             }
             return ret;
@@ -858,9 +867,9 @@ namespace SymbolicLinkGenerator
 
         public static void KillProcessCore()
         {
-            foreach(var p in Process.GetProcessesByName("SlgCore"))
+            foreach(var p in Process.GetProcessesByName(SymbXParams.SYMBX_CORE))
                 p.Kill();
-            var exePath = Path.Combine(Path.GetTempPath(), "SlgCore.exe");
+            //var exePath = Path.Combine(Path.GetTempPath(), $"{SymbXParamters.SYMBX_CORE}.exe");
             //if(File.Exists(exePath))
             //    File.Delete(exePath); 
         }

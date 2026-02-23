@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("Symbolic Link Generator")]
+[assembly: AssemblyTitle("SymbX")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Symbolic Link Generator")]
-[assembly: AssemblyCopyright("Copyright ©EvenStandard 2025")]
+[assembly: AssemblyProduct("SymbX")]
+[assembly: AssemblyCopyright("Copyright ©EvenStandard 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -30,4 +30,4 @@ using System.Runtime.InteropServices;
 //      修订号
 //
 [assembly: AssemblyVersion("1.0.0.10")]
-[assembly: AssemblyFileVersion("1.25.1018.1")]
+[assembly: AssemblyFileVersion("1.26.0223.0")]

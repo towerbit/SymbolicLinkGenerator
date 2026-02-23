@@ -1,4 +1,4 @@
-﻿namespace SymbolicLinkGenerator
+﻿namespace SymbX
 {
     partial class frmMain
     {
@@ -452,12 +452,14 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(1264, 761);
+            //this.ClientSize = new System.Drawing.Size(1264, 761);
+            this.ClientSize = new System.Drawing.Size(800 - 36, 600 - 39);
+            this.MinimumSize = new System.Drawing.Size(800 - 36, 600 - 39);
             this.Controls.Add(this.spcMain);
             this.Controls.Add(this.msMain);
             this.MainMenuStrip = this.msMain;
             this.Name = "frmMain";
-            this.Text = "Symbolic Link Generator";
+            this.Text = "frmMain";
             this.spcMain.Panel1.ResumeLayout(false);
             this.spcMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.spcMain)).EndInit();

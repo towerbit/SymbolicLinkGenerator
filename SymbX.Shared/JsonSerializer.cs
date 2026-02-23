@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Web.Script.Serialization;
 
-namespace SymbolicLinkGenerator.Shared
+namespace SymbX.Shared
 {
     internal static class JsonSerializer
     {

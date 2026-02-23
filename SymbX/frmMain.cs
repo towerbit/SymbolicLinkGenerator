@@ -1,4 +1,5 @@
 ﻿using NotificationUI;
+using SymbX.Shared;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,9 +9,8 @@ using System.Linq;
 using System.Media;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml.Linq;
 
-namespace SymbolicLinkGenerator
+namespace SymbX
 {
     public partial class frmMain : Form
     {
@@ -21,7 +21,7 @@ namespace SymbolicLinkGenerator
         {
             InitializeComponent();
             _notifier = new Notifier();
-
+            this.Text = Application.ProductName;
             this.Icon = Properties.Resources.form;
             this.KeyPreview = true;
 
@@ -61,8 +61,12 @@ namespace SymbolicLinkGenerator
             spcSrc.FixedPanel = FixedPanel.Panel1;
             spcSrc.Panel1MinSize = 100;
             spcSrc.Panel2MinSize = 100;
-            spcSrc.SplitterMoved += (s, e) => ExplorerHelper.ResizeListViewColumns(lvwSrc);
-
+            spcSrc.SplitterMoved += (s, e) =>
+            {
+                ExplorerHelper.ResizeListViewColumns(lvwSrc);
+                Properties.Settings.Default.SrcSplitterDistance = spcSrc.SplitterDistance;
+                Properties.Settings.Default.Save();
+            };
             btnSrc.Image = Properties.Resources.treeview.ToBitmap();
             btnSrc.CheckedChanged += (s, e) =>
             {
@@ -97,8 +101,12 @@ namespace SymbolicLinkGenerator
             spcDst.FixedPanel = FixedPanel.Panel1;
             spcDst.Panel1MinSize = 100;
             spcDst.Panel2MinSize = 100;
-            spcDst.SplitterMoved += (s, e) => ExplorerHelper.ResizeListViewColumns(lvwDst);
-
+            spcDst.SplitterMoved += (s, e) =>
+            {
+                ExplorerHelper.ResizeListViewColumns(lvwDst);
+                Properties.Settings.Default.DstSplitterDistance = spcDst.SplitterDistance;
+                Properties.Settings.Default.Save();
+            };
             btnDst.Image = Properties.Resources.treeview.ToBitmap();
             btnDst.CheckedChanged += (s, e) =>
             {
@@ -315,7 +323,7 @@ namespace SymbolicLinkGenerator
             }
 
             bool needReload = false;
-            var items = new List<dtoSLGItem>();
+            var items = new List<SymbXItem>();
             if (e.Data.GetDataPresent(typeof(ListView.SelectedListViewItemCollection)))
             {
                 // 拖入的是内部的 ListViewItem，支持多选拖放
@@ -328,7 +336,7 @@ namespace SymbolicLinkGenerator
                     var target = draggedItem.Tag.ToString();
                     //if (ExplorerHelper.TryMakeLinkByCore(link, target, mnuShowLog.Checked))
                     //    needReload = true;
-                    items.Add(new dtoSLGItem() { Link = link, SourcePath = target });
+                    items.Add(new SymbXItem() { Link = link, SourcePath = target });
                 }
             }
             else if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -345,7 +353,7 @@ namespace SymbolicLinkGenerator
                         var target = file;
                         //if (ExplorerHelper.TryMakeLinkByCore(link, target, mnuShowLog.Checked))
                         //    needReload = true;
-                        items.Add(new dtoSLGItem() { Link = link, SourcePath = target });
+                        items.Add(new SymbXItem() { Link = link, SourcePath = target });
                     }
                 }
             }
@@ -610,7 +618,7 @@ namespace SymbolicLinkGenerator
             IDataObject dataObject = Clipboard.GetDataObject();
             bool ret = false;
 
-            var items = new List<dtoSLGItem>();
+            var items = new List<SymbXItem>();
             if (dataObject.GetDataPresent(DataFormats.Text))
             {
                 var clipboardText = (string)dataObject.GetData(DataFormats.Text);
@@ -623,7 +631,7 @@ namespace SymbolicLinkGenerator
                     {
                         var link = Path.Combine(path, Path.GetFileName(fileOrFolder));
                         //ExplorerHelper.TryMakeLinkByCore(link, fileOrFolder, showLog);
-                        items.Add(new dtoSLGItem() { Link = link, SourcePath = fileOrFolder });
+                        items.Add(new SymbXItem() { Link = link, SourcePath = fileOrFolder });
                         //ret = true;
                     }
                     else
@@ -644,7 +652,7 @@ namespace SymbolicLinkGenerator
                     {
                         var link = Path.Combine(path, Path.GetFileName(fileOrFolder));
                         //ExplorerHelper.TryMakeLinkByCore(link, fileOrFolder, showLog);
-                        items.Add(new dtoSLGItem() { Link = link, SourcePath = fileOrFolder });
+                        items.Add(new SymbXItem() { Link = link, SourcePath = fileOrFolder });
                         //ret = true;
                     }
                     else
@@ -740,6 +748,22 @@ Ctrl+R to select inverse.
             ExplorerHelper.KillProcessCore();
         }
 
+        private bool _bShown = false;
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            // 有 MinimizeSize 限制
+            this.SetBounds(Properties.Settings.Default.LastLocation.X,
+                           Properties.Settings.Default.LastLocation.Y,
+                           Properties.Settings.Default.LastSize.Width,
+                           Properties.Settings.Default.LastSize.Height);
+            // 有 Panel1MinSize 限制
+            spcSrc.SplitterDistance = Properties.Settings.Default.SrcSplitterDistance;
+            spcDst.SplitterDistance = Properties.Settings.Default.DstSplitterDistance;
+            _bShown = true;
+        }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -748,6 +772,16 @@ Ctrl+R to select inverse.
             txtDstPath.Width = spcDst.Width - btnDst.Width - lblDstPath.Width - SPRING_BORDER;
             if (_notifier != null)
                 _notifier.WorkingArea = this.Bounds;
+            if (_bShown)
+            {
+                var sz = this.Size;
+                if (sz.Width > Screen.PrimaryScreen.WorkingArea.Width)
+                    sz.Width = Screen.PrimaryScreen.WorkingArea.Width;
+                if (sz.Height > Screen.PrimaryScreen.WorkingArea.Height)
+                    sz.Height = Screen.PrimaryScreen.WorkingArea.Height;
+                Properties.Settings.Default.LastSize = sz;
+                Properties.Settings.Default.Save();
+            }
         }
 
         protected override void OnMove(EventArgs e)
@@ -755,6 +789,18 @@ Ctrl+R to select inverse.
             base.OnMove(e);
             if (_notifier != null)
                 _notifier.WorkingArea = this.Bounds;
+            if(_bShown)
+            {
+                var loc = this.Location;
+                if (loc.X < 0) loc.X = 0;
+                if (loc.Y < 0) loc.Y = 0;
+                if (loc.X > Screen.PrimaryScreen.WorkingArea.Width - this.Width)
+                    loc.X = Screen.PrimaryScreen.WorkingArea.Width - this.Width;
+                if (loc.Y > Screen.PrimaryScreen.WorkingArea.Height - this.Height)
+                    loc.Y = Screen.PrimaryScreen.WorkingArea.Height - this.Height;
+                Properties.Settings.Default.LastLocation = loc;
+                Properties.Settings.Default.Save();
+            }
         }
         #endregion
     }

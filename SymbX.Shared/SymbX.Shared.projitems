@@ -11,6 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)JsonSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)dtoSLGItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbXItem.cs" />
   </ItemGroup>
 </Project>

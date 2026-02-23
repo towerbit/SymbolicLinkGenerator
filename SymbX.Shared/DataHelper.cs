@@ -1,18 +1,18 @@
-﻿namespace SymbolicLinkGenerator.Shared
+﻿namespace SymbX.Shared
 {
     internal class DataHelper
     {
-        public dtoSLGItem[] Items { get; set; }
+        public SymbXItem[] Items { get; set; }
 
         public DataHelper()
         {
-            Items = new dtoSLGItem[0];
+            Items = new SymbXItem[0];
         }
 
         public DataHelper(string json)
         {
             //this.Items = JsonConvert.DeserializeObject<dtoSLGItem[]>(json);
-            this.Items = JsonSerializer.Deserialize<dtoSLGItem[]>(json);
+            this.Items = JsonSerializer.Deserialize<SymbXItem[]>(json);
         }
 
         //public string ToJson() => JsonConvert.SerializeObject(this.Items);

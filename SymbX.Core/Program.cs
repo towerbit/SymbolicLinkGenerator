@@ -5,9 +5,9 @@ using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
-using SymbolicLinkGenerator.Shared;
+using SymbX.Shared;
 
-namespace SymbolicLinkGeneratorCore
+namespace SymbX.Core
 {
     internal class Program
     {
@@ -26,7 +26,7 @@ namespace SymbolicLinkGeneratorCore
             {
                 try
                 {
-                    using (var pipeServer = new NamedPipeServerStream("Global\\SlgFilePipe", PipeDirection.InOut,
+                    using (var pipeServer = new NamedPipeServerStream(SymbXParams.SYMBX_PIPE, PipeDirection.InOut,
                                                                       1, PipeTransmissionMode.Byte, PipeOptions.None, 
                                                                       1024, 1024, pipeSecurity))
                     {
@@ -68,7 +68,7 @@ namespace SymbolicLinkGeneratorCore
                 {
                     var helper = new DataHelper(receivedMessage);
                     int i = 0;
-                    foreach (dtoSLGItem item in helper.Items)
+                    foreach (SymbXItem item in helper.Items)
                         i += TryMakeLink(item.Link, item.SourcePath) ? 1 : 0;
                     Console.WriteLine($"DBUG: 数据处理完毕, 共 {helper.Items.Length} 项，成功 {i} 项。");
                     

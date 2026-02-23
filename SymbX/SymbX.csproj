@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{3E818568-37DC-400A-8B99-B9D272F6684C}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SymbolicLinkGenerator</RootNamespace>
-    <AssemblyName>SlgUI</AssemblyName>
+    <RootNamespace>SymbX</RootNamespace>
+    <AssemblyName>SymbX</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -91,7 +91,7 @@
     <Content Include="Resources\imageres_5357.ico" />
     <Content Include="Resources\imageres_1301.ico" />
     <Content Include="Resources\imageres_5359.ico" />
-    <EmbeddedResource Include="SlgCore.exe" />
+    <EmbeddedResource Include="SymbX.Core.exe" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NotificationUI\NotificationUI.csproj">
@@ -99,6 +99,6 @@
       <Name>NotificationUI</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\SymbolicLinkGenerator.Shared\SymbolicLinkGenerator.Shared.projitems" Label="Shared" />
+  <Import Project="..\SymbX.Shared\SymbX.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

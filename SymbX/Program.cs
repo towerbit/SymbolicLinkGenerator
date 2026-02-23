@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace SymbolicLinkGenerator
+namespace SymbX
 {
     internal static class Program
     {
@@ -37,7 +37,7 @@ namespace SymbolicLinkGenerator
             {
                 Debug.Print($"当前目录下的 SlgCore.exe 未删除, {ex.Message}");
             }
-            SetProcessDPIAware();
+            //SetProcessDPIAware();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
