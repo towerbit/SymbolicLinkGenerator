@@ -7,6 +7,4 @@
 
 This is a small utility designed for creating symbolic links on Windows. It enables users to easily create symbolic links wherever they want by using drag-and-drop or copy-paste actions . To avoid accidental deletions, only symbolic links can be removed in it.
 
-The tool was initially created to help me manage my large collection of movie files by organizing them into multiple categorized directories without duplicating disk space. I prefer using file directories over media management systems because it feels more convenient and simpler to me.
-
-Especially since symbolic link multimedia files can be played directly over FTP, everything is incredibly convenient.
+The tool was initially created to help me manage my large collection of movie files by organizing them into multiple categorized directories without duplicating disk space. I prefer using file directories over media management systems because it feels more convenient and simpler to me. Especially since symbolic link multimedia files can be played directly over FTP, everything is incredibly convenient.
