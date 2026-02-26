@@ -199,7 +199,7 @@ namespace SymbX
         /// <param name="lvw"></param>
         public static void ReloadFolderFiles(TreeNode node, ListView lvw)
         {
-
+            
             if (lvw.SmallImageList == null)
             {
                 //lvw.SmallImageList = _imageList;
@@ -468,7 +468,7 @@ namespace SymbX
         /// <param name="parentNode"></param>
         /// <param name="clear"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static void AddSubFolders_old(TreeNode parentNode, bool clear = false)
+        public static void AddSubFolders(TreeNode parentNode, bool clear = false)
         {
             if (parentNode == null)
                 throw new ArgumentNullException("parentNode");
@@ -514,11 +514,17 @@ namespace SymbX
                 }
                 parentNode.TreeView.EndUpdate();
                 parentNode.TreeView.Cursor = Cursors.Default;
-                parentNode.Expand();
+                //parentNode.Expand();
             }
         }
-        
-        public static void AddSubFolders(TreeNode node, bool reload = false)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="reload"></param>
+        [Obsolete("实际没有加载全部目录，findNodeByText() 时会出错, 使用 AddSubFolders() 速度并不慢")]
+        public static void AddSubFolders_new(TreeNode node, bool reload = false)
         {
             if (node.Nodes.Count > 0 && !reload)
                 return;
@@ -578,7 +584,6 @@ namespace SymbX
                 }
                 catch (Exception)
                 {
-
                     return false;
                 }
             }
